@@ -12,4 +12,5 @@ public class RecipeIngredient{
     Long id;
     String ingredientName;
     Quantity quantity;
+    String description;
 }

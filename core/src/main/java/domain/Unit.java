@@ -1,5 +1,15 @@
 package domain;
 
 public enum Unit {
-    GRAMS, CUPS, TBSP, TSP
+    // Weight measurements
+    GRAMS,
+    OUNCES,
+    POUNDS,
+
+    // Volume measurements
+    CUPS,
+    TBSP,
+    TSP,
+    ML,
+    LITERS
 }
