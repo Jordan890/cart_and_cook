@@ -1,4 +1,4 @@
-package recipe;
+package com.cartandcook.adapters.persistencejpa;
 
 import api.RecipeRepository;
 import domain.Recipe;

@@ -13,6 +13,10 @@ dependencies {
     implementation(project(":adapters:persistence-jpa"))
     implementation(project(":adapters:auth-local"))
     implementation("org.springframework.boot:spring-boot-starter-web")
+    compileOnly("org.projectlombok:lombok:1.18.30")
+    annotationProcessor("org.projectlombok:lombok:1.18.30")
+    testCompileOnly("org.projectlombok:lombok:1.18.30")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.30")
 
     runtimeOnly("org.postgresql:postgresql")
 }
