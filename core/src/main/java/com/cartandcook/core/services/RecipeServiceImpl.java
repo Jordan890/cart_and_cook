@@ -1,8 +1,8 @@
-package services;
+package com.cartandcook.core.services;
 
-import api.RecipeRepository;
-import api.RecipeService;
-import domain.Recipe;
+import com.cartandcook.core.api.RecipeRepository;
+import com.cartandcook.core.api.RecipeService;
+import com.cartandcook.core.domain.Recipe;
 
 import java.util.List;
 

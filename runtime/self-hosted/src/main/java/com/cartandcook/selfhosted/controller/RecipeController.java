@@ -1,9 +1,9 @@
 package com.cartandcook.selfhosted.controller;
 
-import api.RecipeService;
+import com.cartandcook.core.domain.Recipe;
 import com.cartandcook.selfhosted.contracts.RecipeRequest;
 import com.cartandcook.selfhosted.contracts.RecipeResponse;
-import domain.Recipe;
+import com.cartandcook.selfhosted.service.RecipeServiceSpring;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,9 +14,9 @@ import java.util.stream.Collectors;
 @RequestMapping("/recipes")
 public class RecipeController {
 
-    private final RecipeService recipeService;
+    private final RecipeServiceSpring recipeService;
 
-    public RecipeController(RecipeService recipeService) {
+    public RecipeController(RecipeServiceSpring recipeService) {
         this.recipeService = recipeService;
     }
 

@@ -1,6 +1,6 @@
 package com.cartandcook.adapters.persistencejpa;
 
-import domain.RecipeIngredient;
+import com.cartandcook.core.domain.RecipeIngredient;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

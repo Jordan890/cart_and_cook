@@ -1,4 +1,4 @@
-package domain;
+package com.cartandcook.core.domain;
 
 /**
  * Utility class for converting between different cooking measurement units.

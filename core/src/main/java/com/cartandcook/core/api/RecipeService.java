@@ -1,6 +1,6 @@
-package api;
+package com.cartandcook.core.api;
 
-import domain.Recipe;
+import com.cartandcook.core.domain.Recipe;
 
 import java.util.List;
 

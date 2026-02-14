@@ -1,8 +1,7 @@
 package com.cartandcook.adapters.persistencejpa;
 
-import api.RecipeRepository;
-import domain.Recipe;
-import org.springframework.data.jpa.repository.JpaRepository;
+import com.cartandcook.core.api.RecipeRepository;
+import com.cartandcook.core.domain.Recipe;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -12,9 +11,9 @@ import java.util.stream.Collectors;
 @Repository
 public class RecipeRepositoryJpa implements RecipeRepository {
 
-    private final JpaRepository<RecipeEntity, Long> jpaRepository;
+    private final SpringDataRecipeRepository jpaRepository;
 
-    public RecipeRepositoryJpa(JpaRepository<RecipeEntity, Long> jpaRepository) {
+    public RecipeRepositoryJpa(SpringDataRecipeRepository jpaRepository) {
         this.jpaRepository = jpaRepository;
     }
 

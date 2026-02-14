@@ -1,4 +1,4 @@
-package domain;
+package com.cartandcook.core.domain;
 
 public enum Unit {
     // Weight measurements

@@ -1,6 +1,6 @@
 package com.cartandcook.selfhosted.contracts;
 
-import domain.RecipeIngredient;
+import com.cartandcook.core.domain.RecipeIngredient;
 import lombok.Data;
 
 import java.util.List;
