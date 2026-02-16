@@ -10,6 +10,12 @@ spring:
       ddl-auto: update
     show-sql: true
 
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:8080/realms/cart_and_cook}
+
 # Server settings
 server:
   port: ${PORT:8081}
