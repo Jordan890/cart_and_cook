@@ -37,8 +37,8 @@ public class RecipeRepositoryJpa implements RecipeRepository {
     }
 
     @Override
-    public List<Recipe> findAll() {
-        return jpaRepository.findAll().stream().map(this::toDomain).collect(Collectors.toList());
+    public List<Recipe> findAll(Long userId) {
+        return jpaRepository.findByOwnerId(userId).stream().map(this::toDomain).collect(Collectors.toList());
     }
 
     @Override

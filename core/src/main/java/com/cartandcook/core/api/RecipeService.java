@@ -7,7 +7,7 @@ import java.util.List;
 public interface RecipeService {
 
     Recipe upsertRecipe(Recipe recipe);
-    List<Recipe> getAllRecipes();
+    List<Recipe> getAllRecipes(Long userId);
     Recipe getRecipeById(Long id);
     void deleteRecipe(Long id);
 }

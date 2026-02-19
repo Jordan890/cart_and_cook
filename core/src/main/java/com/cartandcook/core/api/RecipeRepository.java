@@ -9,6 +9,6 @@ public interface RecipeRepository {
 
     Recipe save(Recipe recipe);
     Optional<Recipe> findById(Long id);
-    List<Recipe> findAll();
+    List<Recipe> findAll(Long userId);
     void delete(Long id);
 }

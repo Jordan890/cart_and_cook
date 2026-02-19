@@ -1,10 +1,14 @@
 package com.cartandcook.selfhosted.controller;
 
 import com.cartandcook.core.domain.Recipe;
+import com.cartandcook.core.domain.User;
 import com.cartandcook.selfhosted.contracts.RecipeRequest;
 import com.cartandcook.selfhosted.contracts.RecipeResponse;
+import com.cartandcook.selfhosted.security.CurrentUserProvider;
 import com.cartandcook.selfhosted.service.RecipeServiceSpring;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -15,14 +19,17 @@ import java.util.stream.Collectors;
 public class RecipeController {
 
     private final RecipeServiceSpring recipeService;
+    private final CurrentUserProvider currentUserProvider;
 
-    public RecipeController(RecipeServiceSpring recipeService) {
+    public RecipeController(RecipeServiceSpring recipeService,
+                            CurrentUserProvider currentUserProvider) {
         this.recipeService = recipeService;
+        this.currentUserProvider = currentUserProvider;
     }
-
     @GetMapping
-    public ResponseEntity<List<RecipeResponse>> getAllRecipes() {
-        List<RecipeResponse> response = recipeService.getAllRecipes()
+    public ResponseEntity<List<RecipeResponse>> getAllRecipes(@AuthenticationPrincipal Jwt jwt) {
+        User currentUser = currentUserProvider.getCurrentUser(jwt);
+        List<RecipeResponse> response = recipeService.getAllRecipes(currentUser.getId())
                 .stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());

@@ -25,8 +25,8 @@ public class RecipeServiceSpring {
         return coreService.getRecipeById(id);
     }
 
-    public List<Recipe> getAllRecipes() {
-        return coreService.getAllRecipes();
+    public List<Recipe> getAllRecipes(Long userId) {
+        return coreService.getAllRecipes(userId);
     }
 
     public void deleteRecipe(Long id) {

@@ -1,4 +1,4 @@
-package com.cartandcook.selfhosted.config;
+package com.cartandcook.selfhosted.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
