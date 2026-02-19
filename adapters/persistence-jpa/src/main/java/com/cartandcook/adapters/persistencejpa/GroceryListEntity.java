@@ -1,5 +1,6 @@
 package com.cartandcook.adapters.persistencejpa;
 
+
 import com.cartandcook.core.domain.IngredientQuantity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -11,26 +12,23 @@ import org.hibernate.type.SqlTypes;
 import java.util.List;
 
 @Entity
-@Table(name = "recipes")
+@Table(name = "grocery_lists")
 @Getter
 @Setter
 @NoArgsConstructor
-public class RecipeEntity {
+public class GroceryListEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "recipe_seq")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "grocery_list_seq")
     @SequenceGenerator(
-            name = "recipe_seq",
-            sequenceName = "recipe_sequence",
+            name = "grocery_list_seq",
+            sequenceName = "grocery_list_sequence",
             allocationSize = 50
     )
     private Long id;
 
     @Column(nullable = false)
     private String name;
-
-    @Column(nullable = false)
-    private String category;
 
     @Column(columnDefinition = "text")
     private String description;

@@ -55,6 +55,8 @@ public class UnitConverter {
             case CUPS -> amount * 236.588;    // 1 cup = 236.588ml
             case TBSP -> amount * 14.7868;    // 1 tbsp = 14.7868ml
             case TSP -> amount * 4.92892;     // 1 tsp = 4.92892ml
+
+            case COUNT -> throw new IllegalArgumentException("Cannot convert COUNT unit to a base unit");
         };
     }
 
@@ -74,6 +76,8 @@ public class UnitConverter {
             case CUPS -> baseAmount / 236.588;
             case TBSP -> baseAmount / 14.7868;
             case TSP -> baseAmount / 4.92892;
+
+            case COUNT -> throw new IllegalArgumentException("Cannot convert COUNT unit to a base unit");
         };
     }
 
@@ -97,7 +101,7 @@ public class UnitConverter {
     public static boolean isWeightUnit(Unit unit) {
         return switch (unit) {
             case GRAMS, OUNCES, POUNDS -> true;
-            case ML, LITERS, CUPS, TBSP, TSP -> false;
+            case ML, COUNT, LITERS, CUPS, TBSP, TSP -> false;
         };
     }
 }

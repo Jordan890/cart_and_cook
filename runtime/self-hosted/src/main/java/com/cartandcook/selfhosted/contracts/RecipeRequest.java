@@ -1,6 +1,6 @@
 package com.cartandcook.selfhosted.contracts;
 
-import com.cartandcook.core.domain.RecipeIngredient;
+import com.cartandcook.core.domain.IngredientQuantity;
 import lombok.Data;
 
 import java.util.List;
@@ -11,5 +11,5 @@ public class RecipeRequest {
     private String name;
     private String category;
     private String description;
-    private List<RecipeIngredient> ingredients;
+    private List<IngredientQuantity> ingredients;
 }

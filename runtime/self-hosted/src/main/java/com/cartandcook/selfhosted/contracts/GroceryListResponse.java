@@ -6,10 +6,9 @@ import lombok.Data;
 import java.util.List;
 
 @Data
-public class RecipeResponse {
+public class GroceryListResponse {
     private Long id;
     private String name;
-    private String category;
     private String description;
     private List<IngredientQuantity> ingredients;
 }

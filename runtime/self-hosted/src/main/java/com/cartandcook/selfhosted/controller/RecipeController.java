@@ -22,7 +22,6 @@ public class RecipeController {
 
     @GetMapping
     public ResponseEntity<List<RecipeResponse>> getAllRecipes() {
-        System.out.println("Getting all recipes");
         List<RecipeResponse> response = recipeService.getAllRecipes()
                 .stream()
                 .map(this::toResponse)

@@ -5,20 +5,18 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 
-
 @RequiredArgsConstructor
 @Getter
-public class Recipe {
+public class GroceryList {
 
     private final Long id;
     private final String name;
-    private final String category;
     private final String description;
     private final List<IngredientQuantity> ingredients;
 
-    public static Recipe hydrate(Long id, String name, String category, String description, List<IngredientQuantity> ingredients) {
+    public static GroceryList hydrate(Long id, String name, String description, List<IngredientQuantity> ingredients) {
         List<IngredientQuantity> lowerIngredients = ingredients.stream().peek(ingredient ->
                 ingredient.setName(ingredient.getName().toLowerCase())).toList();
-        return new Recipe(id, name.toLowerCase(), category.toLowerCase(), description.toLowerCase(), lowerIngredients);
+        return new GroceryList(id, name.toLowerCase(), description.toLowerCase(), lowerIngredients);
     }
 }

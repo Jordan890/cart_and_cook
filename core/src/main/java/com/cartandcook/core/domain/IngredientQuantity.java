@@ -9,7 +9,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class RecipeIngredient {
+public class IngredientQuantity {
     private String name;
     private Quantity quantity;
 }

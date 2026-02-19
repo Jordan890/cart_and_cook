@@ -11,5 +11,7 @@ public enum Unit {
     TBSP,
     TSP,
     ML,
-    LITERS
+    LITERS,
+
+    COUNT
 }
