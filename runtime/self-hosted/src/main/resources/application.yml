@@ -19,3 +19,11 @@ spring:
 # Server settings
 server:
   port: ${PORT:8081}
+
+
+cartandcook:
+  ai:
+    base-url: ${AI_BASE_URL}
+    endpoint: ${LLM_ENDPOINT}
+    model: ${LLM_MODEL}
+    api-key: ${LLM_API_KEY}
