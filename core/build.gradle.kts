@@ -1,5 +1,5 @@
 plugins {
-    java
+    `java-library`
     id("io.spring.dependency-management") version "1.1.7"
 }
 
@@ -16,6 +16,12 @@ java {
 dependencies {
     // Optional: if using javax validation, annotations, or commons libraries
     implementation("jakarta.validation:jakarta.validation-api:3.1.1")
+
+    // Jackson for AI response parsing
+    api("com.fasterxml.jackson.core:jackson-databind:2.18.0")
+
+    // Logging
+    api("org.slf4j:slf4j-api:2.0.9")
 
     // Testing
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")

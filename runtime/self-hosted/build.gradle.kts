@@ -11,7 +11,12 @@ repositories {
 dependencies {
     implementation(project(":core"))
     implementation(project(":adapters:persistence-jpa"))
+    implementation(project(":adapters:ai-ollama"))
+    implementation(project(":adapters:ai-openai"))
+    implementation(project(":adapters:ai-bedrock"))
+    implementation(project(":adapters:ai-huggingface"))
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-webflux")
     compileOnly("org.projectlombok:lombok:1.18.30")
     annotationProcessor("org.projectlombok:lombok:1.18.30")
     testCompileOnly("org.projectlombok:lombok:1.18.30")
