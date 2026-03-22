@@ -11,5 +11,6 @@ public class RecipeRequest {
     private String name;
     private String category;
     private String description;
+    private String imageUrl;
     private List<IngredientQuantity> ingredients;
 }

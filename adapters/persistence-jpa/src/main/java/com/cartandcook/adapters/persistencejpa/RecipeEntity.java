@@ -35,6 +35,9 @@ public class RecipeEntity {
     @Column(columnDefinition = "text")
     private String description;
 
+    @Column
+    private String imageUrl;
+
     // Store RecipeIngredient list as JSON
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false)

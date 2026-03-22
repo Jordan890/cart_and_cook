@@ -33,6 +33,7 @@ public class RecipeRepositoryJpa implements RecipeRepository {
         recipeEntity.setName(recipe.getName());
         recipeEntity.setCategory(recipe.getCategory());
         recipeEntity.setDescription(recipe.getDescription());
+        recipeEntity.setImageUrl(recipe.getImageUrl());
         recipeEntity.setIngredients(recipe.getIngredients());
         RecipeEntity saved = jpaRepository.save(recipeEntity);
         return toDomain(saved);
@@ -54,6 +55,6 @@ public class RecipeRepositoryJpa implements RecipeRepository {
     }
 
     private Recipe toDomain(RecipeEntity entity) {
-        return Recipe.hydrate(entity.getId(), entity.getName(), entity.getCategory(), entity.getDescription(), entity.getIngredients(), entity.getOwnerId());
+        return Recipe.hydrate(entity.getId(), entity.getName(), entity.getCategory(), entity.getDescription(), entity.getImageUrl(), entity.getIngredients(), entity.getOwnerId());
     }
 }

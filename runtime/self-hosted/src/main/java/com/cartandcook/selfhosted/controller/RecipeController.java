@@ -54,6 +54,7 @@ public class RecipeController {
                 request.getName(),
                 request.getCategory(),
                 request.getDescription(),
+                request.getImageUrl(),
                 request.getIngredients(),
                 currentUser.getId()
         );
@@ -75,6 +76,7 @@ public class RecipeController {
         response.setName(recipe.getName());
         response.setCategory(recipe.getCategory());
         response.setDescription(recipe.getDescription());
+        response.setImageUrl(recipe.getImageUrl());
         response.setIngredients(recipe.getIngredients());
         return response;
     }
