@@ -20,11 +20,12 @@ public class RecipeRepositoryJpa implements RecipeRepository {
     @Override
     public Recipe save(Recipe recipe) {
         RecipeEntity recipeEntity;
-        if(recipe.getId() != null) {
+        if (recipe.getId() != null) {
             recipeEntity = jpaRepository.findByIdAndOwnerId(recipe.getId(), recipe.getOwnerId())
                     .orElse(null);
             if (recipeEntity == null) {
-                throw new IllegalArgumentException("Recipe with id " + recipe.getId() + " not found for user " + recipe.getOwnerId());
+                throw new IllegalArgumentException(
+                        "Recipe with id " + recipe.getId() + " not found for user " + recipe.getOwnerId());
             }
         } else {
             recipeEntity = new RecipeEntity();
@@ -55,6 +56,7 @@ public class RecipeRepositoryJpa implements RecipeRepository {
     }
 
     private Recipe toDomain(RecipeEntity entity) {
-        return Recipe.hydrate(entity.getId(), entity.getName(), entity.getCategory(), entity.getDescription(), entity.getImageUrl(), entity.getIngredients(), entity.getOwnerId());
+        return Recipe.hydrate(entity.getId(), entity.getName(), entity.getCategory(), entity.getDescription(),
+                entity.getImageUrl(), entity.getIngredients(), entity.getOwnerId());
     }
 }

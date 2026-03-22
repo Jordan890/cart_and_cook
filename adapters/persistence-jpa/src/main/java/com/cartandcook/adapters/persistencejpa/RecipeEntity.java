@@ -19,11 +19,7 @@ public class RecipeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "recipe_seq")
-    @SequenceGenerator(
-            name = "recipe_seq",
-            sequenceName = "recipe_sequence",
-            allocationSize = 50
-    )
+    @SequenceGenerator(name = "recipe_seq", sequenceName = "recipe_sequence", allocationSize = 50)
     private Long id;
 
     @Column(nullable = false)

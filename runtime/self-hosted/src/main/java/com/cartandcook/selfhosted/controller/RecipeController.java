@@ -22,10 +22,11 @@ public class RecipeController {
     private final CurrentUserProvider currentUserProvider;
 
     public RecipeController(RecipeServiceSpring recipeService,
-                            CurrentUserProvider currentUserProvider) {
+            CurrentUserProvider currentUserProvider) {
         this.recipeService = recipeService;
         this.currentUserProvider = currentUserProvider;
     }
+
     @GetMapping
     public ResponseEntity<List<RecipeResponse>> getAllRecipes(@AuthenticationPrincipal Jwt jwt) {
         User currentUser = currentUserProvider.getCurrentUser(jwt);
@@ -47,7 +48,8 @@ public class RecipeController {
     }
 
     @PostMapping
-    public ResponseEntity<RecipeResponse> upsertRecipe(@AuthenticationPrincipal Jwt jwt, @RequestBody RecipeRequest request) {
+    public ResponseEntity<RecipeResponse> upsertRecipe(@AuthenticationPrincipal Jwt jwt,
+            @RequestBody RecipeRequest request) {
         User currentUser = currentUserProvider.getCurrentUser(jwt);
         Recipe recipe = Recipe.hydrate(
                 request.getId(),
@@ -56,8 +58,7 @@ public class RecipeController {
                 request.getDescription(),
                 request.getImageUrl(),
                 request.getIngredients(),
-                currentUser.getId()
-        );
+                currentUser.getId());
         Recipe saved = recipeService.upsertRecipe(recipe);
         return ResponseEntity.ok(toResponse(saved));
     }
@@ -67,7 +68,6 @@ public class RecipeController {
         User currentUser = currentUserProvider.getCurrentUser(jwt);
         recipeService.deleteRecipe(id, currentUser.getId());
     }
-
 
     // Mapper to Response DTO
     private RecipeResponse toResponse(Recipe recipe) {
