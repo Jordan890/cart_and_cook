@@ -4,14 +4,6 @@ import lombok.Data;
 
 @Data
 public class RuntimeConfigRequest {
-    private String dbUrl;
-    private String dbUsername;
-    private String dbPassword;
-    private String dbTestToken;
-    private String oauth2IssuerUri;
-    private String port;
-    private boolean autoRestartOnConfigSave;
-
     private String aiProvider;
     private String ollamaBaseUrl;
     private String ollamaModel;

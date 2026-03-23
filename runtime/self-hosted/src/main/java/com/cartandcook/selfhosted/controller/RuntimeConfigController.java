@@ -1,14 +1,16 @@
 package com.cartandcook.selfhosted.controller;
 
-import com.cartandcook.selfhosted.contracts.RuntimeDbTestRequest;
-import com.cartandcook.selfhosted.contracts.RuntimeDbTestResponse;
 import com.cartandcook.selfhosted.contracts.RuntimeConfigRequest;
 import com.cartandcook.selfhosted.contracts.RuntimeConfigResponse;
-import com.cartandcook.selfhosted.service.RuntimeRestartService;
 import com.cartandcook.selfhosted.service.RuntimeConfigService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
 
@@ -17,13 +19,9 @@ import java.util.Map;
 public class RuntimeConfigController {
 
     private final RuntimeConfigService runtimeConfigService;
-    private final RuntimeRestartService runtimeRestartService;
 
-    public RuntimeConfigController(
-            RuntimeConfigService runtimeConfigService,
-            RuntimeRestartService runtimeRestartService) {
+    public RuntimeConfigController(RuntimeConfigService runtimeConfigService) {
         this.runtimeConfigService = runtimeConfigService;
-        this.runtimeRestartService = runtimeRestartService;
     }
 
     @GetMapping
@@ -33,29 +31,7 @@ public class RuntimeConfigController {
 
     @PutMapping
     public ResponseEntity<RuntimeConfigResponse> saveConfig(@RequestBody RuntimeConfigRequest request) {
-        RuntimeConfigResponse response = runtimeConfigService.save(request);
-        if (response.isRestartRequired() && response.isAutoRestartOnConfigSave()) {
-            runtimeRestartService.requestRestartAsync("Runtime config updated: " + response.getRestartRequiredKeys());
-        }
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/test-db")
-    public ResponseEntity<RuntimeDbTestResponse> testDb(@RequestBody RuntimeDbTestRequest request) {
-        RuntimeDbTestResponse response = runtimeConfigService.testDbConnection(
-                request.getDbUrl(),
-                request.getDbUsername(),
-                request.getDbPassword());
-        return ResponseEntity.ok(response);
-    }
-
-    @PostMapping("/rollback-db")
-    public ResponseEntity<RuntimeConfigResponse> rollbackDb() {
-        RuntimeConfigResponse response = runtimeConfigService.rollbackToLastKnownGoodDb();
-        if (response.isRestartRequired() && response.isAutoRestartOnConfigSave()) {
-            runtimeRestartService.requestRestartAsync("Runtime DB config rolled back to last known good");
-        }
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(runtimeConfigService.save(request));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
