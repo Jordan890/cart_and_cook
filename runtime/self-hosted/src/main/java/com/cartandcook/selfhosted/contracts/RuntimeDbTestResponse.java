@@ -8,4 +8,5 @@ import lombok.Data;
 public class RuntimeDbTestResponse {
     private boolean success;
     private String message;
+    private String testToken;
 }

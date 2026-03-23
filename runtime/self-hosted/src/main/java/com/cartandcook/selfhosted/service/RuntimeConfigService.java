@@ -11,9 +11,12 @@ import org.springframework.stereotype.Service;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 @Service
 public class RuntimeConfigService {
@@ -25,6 +28,7 @@ public class RuntimeConfigService {
     private static final String DEFAULT_PORT = "8081";
     private static final boolean DEFAULT_AUTO_RESTART_ON_CONFIG_SAVE = true;
     private static final int DB_TEST_TIMEOUT_SECONDS = 5;
+    private static final Duration DB_TEST_TOKEN_TTL = Duration.ofMinutes(10);
 
     private static final String DEFAULT_AI_PROVIDER = "";
     private static final String DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434";
@@ -57,6 +61,12 @@ public class RuntimeConfigService {
 
     @Value("${spring.datasource.password:" + DEFAULT_DB_PASSWORD + "}")
     private String bootstrapDbPassword;
+
+    private volatile String lastDbTestUrl;
+    private volatile String lastDbTestUsername;
+    private volatile String lastDbTestPassword;
+    private volatile String lastDbTestToken;
+    private volatile Instant lastDbTestAt;
 
     public RuntimeConfigService(
             SpringDataUserRuntimeConfigRepository repository,
@@ -96,9 +106,9 @@ public class RuntimeConfigService {
                 || !Objects.equals(previous.getDbPassword(), newDbPassword);
 
         if (!dbSafeMode && dbChanged) {
-            RuntimeDbTestResponse test = testDbConnection(newDbUrl, newDbUsername, newDbPassword);
-            if (!test.isSuccess()) {
-                throw new IllegalArgumentException("DB connection test failed: " + test.getMessage());
+            if (!isDbTestValid(newDbUrl, newDbUsername, newDbPassword, request.getDbTestToken())) {
+                throw new IllegalArgumentException(
+                        "You must test the DB connection successfully before saving changed DB settings.");
             }
             // Snapshot the validated DB as last-known-good for rollback.
             entity.setLastKnownGoodDbUrl(normalize(newDbUrl, DEFAULT_DB_URL));
@@ -150,11 +160,38 @@ public class RuntimeConfigService {
         try {
             DriverManager.setLoginTimeout(DB_TEST_TIMEOUT_SECONDS);
             try (Connection ignored = DriverManager.getConnection(url, username, password)) {
-                return new RuntimeDbTestResponse(true, "Connection successful");
+                String token = UUID.randomUUID().toString();
+                lastDbTestUrl = url;
+                lastDbTestUsername = username;
+                lastDbTestPassword = password;
+                lastDbTestToken = token;
+                lastDbTestAt = Instant.now();
+                return new RuntimeDbTestResponse(true, "Connection successful", token);
             }
         } catch (SQLException e) {
-            return new RuntimeDbTestResponse(false, e.getMessage());
+            // A failed test invalidates any previous success token.
+            lastDbTestUrl = null;
+            lastDbTestUsername = null;
+            lastDbTestPassword = null;
+            lastDbTestToken = null;
+            lastDbTestAt = null;
+            return new RuntimeDbTestResponse(false, e.getMessage(), null);
         }
+    }
+
+    private boolean isDbTestValid(String url, String username, String password, String token) {
+        if (token == null || token.isBlank() || lastDbTestToken == null || lastDbTestAt == null) {
+            return false;
+        }
+        if (!Objects.equals(token, lastDbTestToken)) {
+            return false;
+        }
+        if (!Objects.equals(url, lastDbTestUrl)
+                || !Objects.equals(username, lastDbTestUsername)
+                || !Objects.equals(password, lastDbTestPassword)) {
+            return false;
+        }
+        return Instant.now().isBefore(lastDbTestAt.plus(DB_TEST_TOKEN_TTL));
     }
 
     public RuntimeConfigResponse rollbackToLastKnownGoodDb() {
