@@ -3,15 +3,17 @@ package com.cartandcook.core.domain;
 public class IngredientEstimate {
 
     private String name;
-    private String amount;
+    private double amount;
+    private String unit;
     private Integer calories;
 
     public IngredientEstimate() {
     }
 
-    public IngredientEstimate(String name, String amount, Integer calories) {
+    public IngredientEstimate(String name, double amount, String unit, Integer calories) {
         this.name = name;
         this.amount = amount;
+        this.unit = unit;
         this.calories = calories;
     }
 
@@ -23,12 +25,20 @@ public class IngredientEstimate {
         this.name = name;
     }
 
-    public String getAmount() {
+    public double getAmount() {
         return amount;
     }
 
-    public void setAmount(String amount) {
+    public void setAmount(double amount) {
         this.amount = amount;
+    }
+
+    public String getUnit() {
+        return unit;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
     }
 
     public Integer getCalories() {
@@ -39,4 +49,3 @@ public class IngredientEstimate {
         this.calories = calories;
     }
 }
-
