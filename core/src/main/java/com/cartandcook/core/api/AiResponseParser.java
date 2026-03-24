@@ -2,6 +2,7 @@ package com.cartandcook.core.api;
 
 import com.cartandcook.core.domain.RecipeAnalysis;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.json.JsonReadFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,18 +20,21 @@ public final class AiResponseParser {
 
     /**
      * Parse the LLM text content into RecipeAnalysis.
-     * On failure, calls retryCallback to get a new response and retries up to MAX_RETRIES times.
+     * On failure, calls retryCallback to get a new response and retries up to
+     * MAX_RETRIES times.
      */
-    public static RecipeAnalysis parseWithRetry(String content, ObjectMapper objectMapper, RetryCallback retryCallback) {
+    public static RecipeAnalysis parseWithRetry(String content, ObjectMapper objectMapper,
+            RetryCallback retryCallback) {
         return parseWithRetry(content, objectMapper, retryCallback, 0);
     }
 
     private static RecipeAnalysis parseWithRetry(String content, ObjectMapper objectMapper,
-                                                  RetryCallback retryCallback, int attempt) {
+            RetryCallback retryCallback, int attempt) {
         String cleaned = cleanJsonContent(content);
+        ObjectMapper relaxedMapper = buildRelaxedMapper(objectMapper);
 
         try {
-            return objectMapper.readValue(cleaned, RecipeAnalysis.class);
+            return relaxedMapper.readValue(cleaned, RecipeAnalysis.class);
         } catch (JsonProcessingException e) {
             if (attempt < MAX_RETRIES) {
                 log.warn("Failed to parse LLM JSON response (attempt {}), retrying...", attempt + 1, e);
@@ -54,7 +58,155 @@ public final class AiResponseParser {
         if (cleaned.endsWith("```")) {
             cleaned = cleaned.substring(0, cleaned.length() - 3);
         }
-        return cleaned.strip();
+
+        cleaned = cleaned.strip();
+
+        // Keep only the JSON object payload if extra text appears before/after it.
+        int firstBrace = cleaned.indexOf('{');
+        int lastBrace = cleaned.lastIndexOf('}');
+        if (firstBrace >= 0 && lastBrace > firstBrace) {
+            cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+        }
+
+        cleaned = cleaned.strip();
+
+        // Attempt to repair truncated JSON (LLMs often hit token limits mid-array).
+        cleaned = repairTruncatedJson(cleaned);
+
+        return cleaned;
+    }
+
+    private static ObjectMapper buildRelaxedMapper(ObjectMapper baseMapper) {
+        ObjectMapper relaxed = baseMapper.copy();
+        relaxed.getFactory().configure(JsonReadFeature.ALLOW_JAVA_COMMENTS.mappedFeature(), true);
+        relaxed.getFactory().configure(JsonReadFeature.ALLOW_YAML_COMMENTS.mappedFeature(), true);
+        relaxed.getFactory().configure(JsonReadFeature.ALLOW_TRAILING_COMMA.mappedFeature(), true);
+        relaxed.getFactory().configure(JsonReadFeature.ALLOW_SINGLE_QUOTES.mappedFeature(), true);
+        return relaxed;
+    }
+
+    /**
+     * Attempt to repair JSON truncated by LLM token limits.
+     * Trims back to the last complete value, then closes any unclosed
+     * arrays/objects.
+     */
+    static String repairTruncatedJson(String json) {
+        // Count unmatched open brackets/braces (skip content inside strings).
+        int openBraces = 0;
+        int openBrackets = 0;
+        boolean inString = false;
+        boolean escaped = false;
+        for (int i = 0; i < json.length(); i++) {
+            char c = json.charAt(i);
+            if (escaped) {
+                escaped = false;
+                continue;
+            }
+            if (c == '\\' && inString) {
+                escaped = true;
+                continue;
+            }
+            if (c == '"') {
+                inString = !inString;
+                continue;
+            }
+            if (!inString) {
+                switch (c) {
+                    case '{' -> openBraces++;
+                    case '}' -> openBraces--;
+                    case '[' -> openBrackets++;
+                    case ']' -> openBrackets--;
+                }
+            }
+        }
+
+        // Already balanced — nothing to repair.
+        if (openBraces == 0 && openBrackets == 0) {
+            return json;
+        }
+
+        log.warn("Detected truncated JSON (unclosed braces={}, brackets={}), attempting repair", openBraces,
+                openBrackets);
+
+        // If we ended inside a string, close it.
+        if (inString) {
+            json = json + "\"";
+        }
+
+        // Trim back: remove a trailing incomplete element (partial key/value after last
+        // comma).
+        // Walk backward to find last structurally valid position.
+        String trimmed = trimToLastCompleteElement(json);
+
+        // Recount after trimming.
+        openBraces = 0;
+        openBrackets = 0;
+        inString = false;
+        escaped = false;
+        for (int i = 0; i < trimmed.length(); i++) {
+            char c = trimmed.charAt(i);
+            if (escaped) {
+                escaped = false;
+                continue;
+            }
+            if (c == '\\' && inString) {
+                escaped = true;
+                continue;
+            }
+            if (c == '"') {
+                inString = !inString;
+                continue;
+            }
+            if (!inString) {
+                switch (c) {
+                    case '{' -> openBraces++;
+                    case '}' -> openBraces--;
+                    case '[' -> openBrackets++;
+                    case ']' -> openBrackets--;
+                }
+            }
+        }
+
+        // Append missing closers in reverse-open order.
+        StringBuilder sb = new StringBuilder(trimmed);
+        for (int i = 0; i < openBrackets; i++) {
+            sb.append(']');
+        }
+        for (int i = 0; i < openBraces; i++) {
+            sb.append('}');
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Walk backward and strip any trailing partial element after the last complete
+     * value.
+     * A complete value ends with: }, ], ", a digit, true, false, or null.
+     */
+    private static String trimToLastCompleteElement(String json) {
+        // Find the last character that could be the end of a complete JSON value.
+        for (int i = json.length() - 1; i >= 0; i--) {
+            char c = json.charAt(i);
+            if (c == '}' || c == ']' || c == '"' || Character.isDigit(c)
+                    || c == 'e' || c == 'l') { // true/false/null endings
+                // Check the surrounding substring for true/false/null.
+                String tail = json.substring(Math.max(0, i - 4), i + 1);
+                if (c == 'e' && !(tail.endsWith("true") || tail.endsWith("false"))) {
+                    continue;
+                }
+                if (c == 'l' && !tail.endsWith("null")) {
+                    continue;
+                }
+                // Strip trailing comma if present after this position.
+                String result = json.substring(0, i + 1);
+                String stripped = result.stripTrailing();
+                if (stripped.endsWith(",")) {
+                    stripped = stripped.substring(0, stripped.length() - 1);
+                }
+                return stripped;
+            }
+        }
+        return json;
     }
 
     /**
@@ -68,4 +220,3 @@ public final class AiResponseParser {
         String sendRetry();
     }
 }
-

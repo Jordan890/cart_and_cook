@@ -59,6 +59,8 @@ public final class AiPrompts {
       - Do NOT include markdown, code fences, or backticks
       - Do NOT include any text outside the JSON object
       - Do NOT include explanations or commentary
+      - Keep JSON compact: use short descriptions and concise ingredient names to stay within output limits
+      - Include ALL ingredients — do NOT stop mid-array
 
       If the image cannot be analyzed, return:
       {"title":"Unknown Dish","category":"unknown","description":"","ingredients":[],"estimatedCalories":0}
@@ -87,7 +89,7 @@ public final class AiPrompts {
       }
 
       Field definitions:
-      - title: Name of the recipe as written
+      - title: Name of the recipe as written at the top of the screenshotted page following the below dish title rules
       - category: A single-word or short food category (e.g. "seafood", "pasta", "salad", "dessert", "soup")
       - description: A brief 1-2 sentence description of the recipe
       - ingredients: List of ingredients from the recipe
@@ -102,10 +104,13 @@ public final class AiPrompts {
       - estimatedCalories: Total calories for the entire recipe (must equal the sum of all ingredient calories)
 
       Ingredient extraction rules:
-      - Determine the title first by reading the top of the page/screenshot
+      - IMPORTANT! Determine the title first by reading the top of the page/screenshot
+      - If any dish title text is visible near the top, copy that title EXACTLY as written (keep wording and order)
+      - NEVER invent or infer a different title from the food photo when a readable top title exists
       - Prefer the most prominent heading near the top (H1/title-style text) as the dish name
       - Ignore site branding, author names, section labels, and navigation text when choosing the title
       - If multiple candidates exist, choose the top-most, dish-specific heading
+      - If the top heading is readable, do not replace it even if ingredients or thumbnail image suggest another dish
       - Extract all ingredients listed in the recipe
       - Preserve the amounts as written in the recipe
       - Use normalized common food names, not descriptions
@@ -120,6 +125,8 @@ public final class AiPrompts {
       - Do NOT include markdown, code fences, or backticks
       - Do NOT include any text outside the JSON object
       - Do NOT include explanations or commentary
+      - Keep JSON compact: use short descriptions and concise ingredient names to stay within output limits
+      - Include ALL ingredients — do NOT stop mid-array
 
       If the image cannot be analyzed, return:
       {"title":"Unknown Dish","category":"unknown","description":"","ingredients":[],"estimatedCalories":0}
