@@ -1,0 +1,25 @@
+# Caddy reverse proxy configuration for Cart & Cook
+# This file proxies path prefixes to the internal Docker services.
+
+# Listen on container port 80 (host port is mapped via docker-compose)
+:80
+
+handle_path /auth/* {
+    reverse_proxy keycloak:8080
+}
+
+handle_path /cook-and-cart/* {
+    uri strip_prefix /cook-and-cart
+    reverse_proxy frontend:80
+}
+
+handle_path /cart-and-cook/api/* {
+    uri strip_prefix /cart-and-cook/api
+    reverse_proxy backend:8081
+}
+
+# Fallback: serve frontend for other /cook-and-cart paths (SPA)
+handle_path /cook-and-cart* {
+    uri strip_prefix /cook-and-cart
+    reverse_proxy frontend:80
+}

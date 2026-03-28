@@ -56,6 +56,7 @@ set +a
 
 USE_EXTERNAL_DB="${USE_EXTERNAL_DB:-false}"
 USE_EXTERNAL_KEYCLOAK="${USE_EXTERNAL_KEYCLOAK:-false}"
+USE_PROXY="${USE_PROXY:-false}"
 
 # ── 3. Detect host IP for external URLs ──────────────────────────────
 detect_host() {
@@ -106,6 +107,11 @@ if [[ "$USE_EXTERNAL_KEYCLOAK" == "true" ]]; then
 else
   PROFILES+=("keycloak")
   info "Starting Docker-managed Keycloak"
+fi
+
+if [[ "$USE_PROXY" == "true" ]]; then
+  PROFILES+=("proxy")
+  info "Starting optional Caddy reverse proxy (USE_PROXY=true)"
 fi
 
 PROFILE_ARGS=""

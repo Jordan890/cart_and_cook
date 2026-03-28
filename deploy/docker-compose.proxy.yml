@@ -1,0 +1,17 @@
+# Override file to remove host `ports:` mappings so services are only
+# reachable via the reverse proxy (Caddy). Use with:
+#
+# docker compose -f docker-compose.yml -f docker-compose.proxy.yml --profile proxy up -d
+#
+services:
+  postgres:
+    ports: []
+
+  keycloak:
+    ports: []
+
+  backend:
+    ports: []
+
+  frontend:
+    ports: []

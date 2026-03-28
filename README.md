@@ -161,13 +161,36 @@ docker compose down -v
 
 ### Reverse Proxy (Optional)
 
-A sample nginx reverse proxy config is provided at `deploy/nginx-proxy.conf`. This routes all traffic through a single port:
+An optional Caddy reverse proxy is provided under `deploy/caddy/Caddyfile` and can be enabled with the `proxy` compose profile.
 
-- `/` → Frontend
-- `/api/` → Backend
-- `/auth/` → Keycloak
+Default mappings when enabled (on the host port `PROXY_PORT`, default `8085`):
 
-To use it, add a `proxy` service to `docker-compose.yml` and remove the port mappings from the individual services. The config file includes commented-out TLS configuration.
+- `/auth` → Keycloak
+- `/cook-and-cart` → Frontend UI
+- `/cart-and-cook/api` → Backend API
+
+Enable the proxy by setting `USE_PROXY=true` in `deploy/.env` (or export it) and start with the setup script or compose profile. Examples:
+
+Using the setup script (generates secrets and starts selected profiles):
+
+```bash
+./setup.sh
+```
+
+Start only the services including proxy with docker compose:
+
+```bash
+docker compose --profile proxy up -d
+```
+
+When using the proxy, update the browser-facing URLs in `.env` to point to the proxy address. For example:
+
+```
+API_URL=http://localhost:8085
+AUTH_AUTHORITY=http://localhost:8085/auth/realms/cart_and_cook
+```
+
+The Caddy proxy listens on a configurable host port (`PROXY_PORT`) to avoid colliding with other apps; set that in `deploy/.env` if necessary.
 
 ### Windows Users
 
