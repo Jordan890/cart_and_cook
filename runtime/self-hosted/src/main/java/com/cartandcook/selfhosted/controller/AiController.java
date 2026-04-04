@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 
 @RestController
-@RequestMapping("/api/ai")
+@RequestMapping("/ai")
 public class AiController {
 
     private final AiService aiService;
@@ -34,4 +34,3 @@ public class AiController {
         return ResponseEntity.ok(result);
     }
 }
-

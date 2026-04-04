@@ -1,0 +1,42 @@
+# ─────────────────────────────────────────────────────────────────────
+# Cart & Cook — Caddy reverse proxy with Tailscale HTTPS
+# ─────────────────────────────────────────────────────────────────────
+# Caddy obtains TLS certificates automatically from Tailscale.
+# All browser traffic arrives over HTTPS on the tailnet hostname.
+# Internal traffic (Caddy → services) is plain HTTP over the Docker network.
+# ─────────────────────────────────────────────────────────────────────
+
+{
+	tailscale {
+		auth_key {env.TS_AUTHKEY}
+		hostname {env.TS_HOSTNAME}
+	}
+}
+
+# Match the Tailscale hostname with automatic TLS
+{env.TS_HOSTNAME}.ts.net {
+	tls {
+		get_certificate tailscale
+	}
+
+	# ── Keycloak (/auth/*) ──────────────────────────────────────────
+	handle_path /auth/* {
+		reverse_proxy keycloak:8080 {
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Forwarded-Host {host}
+		}
+	}
+	handle /auth {
+		redir /auth/ permanent
+	}
+
+	# ── Backend API (/api/*) ─────────────────────────────────────────
+	handle /api/* {
+		reverse_proxy backend:8081
+	}
+
+	# ── Frontend UI (catch-all) ─────────────────────────────────────
+	handle {
+		reverse_proxy ui:80
+	}
+}

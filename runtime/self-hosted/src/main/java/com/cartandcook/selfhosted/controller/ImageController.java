@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/images")
+@RequestMapping("/images")
 public class ImageController {
 
     private final CurrentUserProvider currentUserProvider;
@@ -72,7 +72,7 @@ public class ImageController {
 
         Files.copy(image.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
 
-        String imageUrl = "/api/images/" + userId + "/" + filename;
+        String imageUrl = "/images/" + userId + "/" + filename;
         return ResponseEntity.ok(Map.of("imageUrl", imageUrl));
     }
 
