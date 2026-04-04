@@ -10,16 +10,16 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.io.ByteArrayInputStream;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
-import org.springframework.security.oauth2.core.OAuth2TokenValidator;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
-import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
-import org.springframework.security.oauth2.core.OAuth2Error;
 import org.springframework.security.oauth2.jwt.JwtValidators;
 
 @Configuration
@@ -31,8 +31,8 @@ public class SecurityConfig {
     @Value("${spring.security.oauth2.resourceserver.jwt.issuer-uri:http://localhost:8080/realms/cart_and_cook}")
     private String issuerUri;
 
-    @Value("${spring.security.oauth2.resourceserver.jwt.audiences:cart-and-cook-api}")
-    private String expectedAudiencesRaw;
+    @Value("${jwt.public-key}")
+    private String jwtPublicKeyBase64;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -52,18 +52,15 @@ public class SecurityConfig {
     }
 
     @Bean
-    public JwtDecoder jwtDecoder() {
-        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withJwkSetUri(this.issuerUri + "/protocol/openid-connect/certs")
-                .build();
+    public JwtDecoder jwtDecoder() throws Exception {
+        byte[] certBytes = Base64.getDecoder().decode(jwtPublicKeyBase64);
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        X509Certificate cert = (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(certBytes));
+        RSAPublicKey publicKey = (RSAPublicKey) cert.getPublicKey();
+        NimbusJwtDecoder jwtDecoder = NimbusJwtDecoder.withPublicKey(publicKey).build();
 
-        // default validator (exp, nbf, issuer)
-        OAuth2TokenValidator<Jwt> withIssuer = JwtValidators.createDefaultWithIssuer(this.issuerUri);
-        // audience validator - split comma/space separated raw value
-        List<String> audList = List.of(this.expectedAudiencesRaw.split("\\s*,\\s*"));
-        AudienceValidator audienceValidator = new AudienceValidator(audList);
-
-        OAuth2TokenValidator<Jwt> validator = new DelegatingOAuth2TokenValidator<>(withIssuer, audienceValidator);
-        jwtDecoder.setJwtValidator(validator);
+        // validate exp, nbf, issuer
+        jwtDecoder.setJwtValidator(JwtValidators.createDefaultWithIssuer(this.issuerUri));
         return jwtDecoder;
     }
 

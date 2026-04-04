@@ -15,8 +15,6 @@ spring:
       resourceserver:
         jwt:
           issuer-uri: ${OAUTH2_ISSUER_URI:http://localhost:8080/realms/cart_and_cook}
-          audiences:
-            - cart-and-cook-api
 
 # Server settings
 server:
@@ -31,6 +29,10 @@ management:
   endpoint:
     health:
       show-details: when-authorized
+
+# JWT certificate (base64-encoded X.509 certificate from Keycloak Realm Settings > Keys > RS256 > Certificate)
+jwt:
+  public-key: ${JWT_PUBLIC_KEY}
 
 # CORS
 cors:
