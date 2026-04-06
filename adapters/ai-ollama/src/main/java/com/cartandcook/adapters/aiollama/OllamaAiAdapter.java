@@ -36,15 +36,35 @@ public class OllamaAiAdapter implements AiService {
 
     @Override
     public RecipeAnalysis analyzeFoodImage(byte[] image) {
-        return analyze(image, AiPrompts.FOOD_IMAGE_PROMPT);
+        return analyzeWithImage(image, AiPrompts.FOOD_IMAGE_PROMPT);
     }
 
     @Override
     public RecipeAnalysis analyzeRecipeImage(byte[] image) {
-        return analyze(image, AiPrompts.RECIPE_IMAGE_PROMPT);
+        return analyzeWithImage(image, AiPrompts.RECIPE_IMAGE_PROMPT);
     }
 
-    private RecipeAnalysis analyze(byte[] image, String prompt) {
+    @Override
+    public RecipeAnalysis analyzeFoodByTitle(String dishTitle) {
+        return analyzeTextOnly(AiPrompts.foodTitleOnlyPrompt(dishTitle));
+    }
+
+    @Override
+    public RecipeAnalysis analyzeFoodByTitleAndImage(String dishTitle, byte[] image) {
+        return analyzeWithImage(image, AiPrompts.foodTitlePrompt(dishTitle));
+    }
+
+    @Override
+    public RecipeAnalysis analyzeRecipeByTitle(String dishTitle) {
+        return analyzeTextOnly(AiPrompts.recipeTitleOnlyPrompt(dishTitle));
+    }
+
+    @Override
+    public RecipeAnalysis analyzeRecipeByTitleAndImage(String dishTitle, byte[] image) {
+        return analyzeWithImage(image, AiPrompts.recipeTitlePrompt(dishTitle));
+    }
+
+    private RecipeAnalysis analyzeWithImage(byte[] image, String prompt) {
         byte[] processed = AiImageProcessor.preprocessImage(image);
         String base64 = Base64.getEncoder().encodeToString(processed);
 
@@ -53,11 +73,9 @@ public class OllamaAiAdapter implements AiService {
                 "messages", List.of(Map.of(
                         "role", "user",
                         "content", prompt,
-                        "images", List.of(base64)
-                )),
+                        "images", List.of(base64))),
                 "stream", false,
-                "options", Map.of("temperature", 0.2)
-        );
+                "options", Map.of("temperature", 0.2));
 
         String rawResponse = sendRequest(requestBody);
         String content = extractContent(rawResponse);
@@ -67,11 +85,33 @@ public class OllamaAiAdapter implements AiService {
                     "model", properties.getModel(),
                     "messages", List.of(Map.of(
                             "role", "user",
-                            "content", AiPrompts.RETRY_PROMPT
-                    )),
+                            "content", AiPrompts.RETRY_PROMPT)),
                     "stream", false,
-                    "options", Map.of("temperature", 0.2)
-            );
+                    "options", Map.of("temperature", 0.2));
+            return extractContent(sendRequest(retryBody));
+        });
+    }
+
+    private RecipeAnalysis analyzeTextOnly(String prompt) {
+        Map<String, Object> requestBody = Map.of(
+                "model", properties.getModel(),
+                "messages", List.of(Map.of(
+                        "role", "user",
+                        "content", prompt)),
+                "stream", false,
+                "options", Map.of("temperature", 0.2));
+
+        String rawResponse = sendRequest(requestBody);
+        String content = extractContent(rawResponse);
+
+        return AiResponseParser.parseWithRetry(content, objectMapper, () -> {
+            Map<String, Object> retryBody = Map.of(
+                    "model", properties.getModel(),
+                    "messages", List.of(Map.of(
+                            "role", "user",
+                            "content", AiPrompts.RETRY_PROMPT)),
+                    "stream", false,
+                    "options", Map.of("temperature", 0.2));
             return extractContent(sendRequest(retryBody));
         });
     }
@@ -83,12 +123,11 @@ public class OllamaAiAdapter implements AiService {
                     .header("Content-Type", "application/json")
                     .bodyValue(requestBody)
                     .retrieve()
-                    .onStatus(status -> status.isError(), clientResponse ->
-                            clientResponse.bodyToMono(String.class)
-                                    .defaultIfEmpty("(no body)")
-                                    .map(body -> new AiServiceException(
-                                            "Ollama returned " + clientResponse.statusCode().value()
-                                                    + ". Response: " + body)))
+                    .onStatus(status -> status.isError(), clientResponse -> clientResponse.bodyToMono(String.class)
+                            .defaultIfEmpty("(no body)")
+                            .map(body -> new AiServiceException(
+                                    "Ollama returned " + clientResponse.statusCode().value()
+                                            + ". Response: " + body)))
                     .bodyToMono(String.class)
                     .block();
 
@@ -119,4 +158,3 @@ public class OllamaAiAdapter implements AiService {
         }
     }
 }
-

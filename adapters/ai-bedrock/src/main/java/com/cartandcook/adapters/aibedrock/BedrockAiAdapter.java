@@ -21,7 +21,8 @@ import java.util.Map;
 /**
  * AiService implementation for AWS Bedrock using the InvokeModel API.
  * Sends Claude Messages-format JSON directly.
- * Uses DefaultCredentialsProvider (env vars, ~/.aws/credentials, IAM role, etc.).
+ * Uses DefaultCredentialsProvider (env vars, ~/.aws/credentials, IAM role,
+ * etc.).
  */
 @Service
 @ConditionalOnProperty(name = "cartandcook.ai.provider", havingValue = "bedrock")
@@ -34,7 +35,7 @@ public class BedrockAiAdapter implements AiService {
     private final ObjectMapper objectMapper;
 
     public BedrockAiAdapter(BedrockRuntimeClient bedrockClient, BedrockProperties properties,
-                            ObjectMapper objectMapper) {
+            ObjectMapper objectMapper) {
         this.bedrockClient = bedrockClient;
         this.properties = properties;
         this.objectMapper = objectMapper;
@@ -42,22 +43,47 @@ public class BedrockAiAdapter implements AiService {
 
     @Override
     public RecipeAnalysis analyzeFoodImage(byte[] image) {
-        return analyze(image, AiPrompts.FOOD_IMAGE_PROMPT);
+        return analyzeWithImage(image, AiPrompts.FOOD_IMAGE_PROMPT);
     }
 
     @Override
     public RecipeAnalysis analyzeRecipeImage(byte[] image) {
-        return analyze(image, AiPrompts.RECIPE_IMAGE_PROMPT);
+        return analyzeWithImage(image, AiPrompts.RECIPE_IMAGE_PROMPT);
     }
 
-    private RecipeAnalysis analyze(byte[] image, String prompt) {
+    @Override
+    public RecipeAnalysis analyzeFoodByTitle(String dishTitle) {
+        return analyzeTextOnly(AiPrompts.foodTitleOnlyPrompt(dishTitle));
+    }
+
+    @Override
+    public RecipeAnalysis analyzeFoodByTitleAndImage(String dishTitle, byte[] image) {
+        return analyzeWithImage(image, AiPrompts.foodTitlePrompt(dishTitle));
+    }
+
+    @Override
+    public RecipeAnalysis analyzeRecipeByTitle(String dishTitle) {
+        return analyzeTextOnly(AiPrompts.recipeTitleOnlyPrompt(dishTitle));
+    }
+
+    @Override
+    public RecipeAnalysis analyzeRecipeByTitleAndImage(String dishTitle, byte[] image) {
+        return analyzeWithImage(image, AiPrompts.recipeTitlePrompt(dishTitle));
+    }
+
+    private RecipeAnalysis analyzeWithImage(byte[] image, String prompt) {
         byte[] processed = AiImageProcessor.preprocessImage(image);
         String base64 = Base64.getEncoder().encodeToString(processed);
 
         String content = sendImageRequest(base64, prompt);
 
-        return AiResponseParser.parseWithRetry(content, objectMapper, () ->
-                sendTextRequest(AiPrompts.RETRY_PROMPT));
+        return AiResponseParser.parseWithRetry(content, objectMapper, () -> sendTextRequest(AiPrompts.RETRY_PROMPT));
+    }
+
+    private RecipeAnalysis analyzeTextOnly(String prompt) {
+        String content = sendTextRequest(prompt);
+
+        return AiResponseParser.parseWithRetry(content, objectMapper, () -> sendTextRequest(AiPrompts.RETRY_PROMPT));
     }
 
     private String sendImageRequest(String base64Image, String prompt) {
@@ -72,12 +98,8 @@ public class BedrockAiAdapter implements AiService {
                                         "source", Map.of(
                                                 "type", "base64",
                                                 "media_type", "image/jpeg",
-                                                "data", base64Image
-                                        )),
-                                Map.of("type", "text", "text", prompt)
-                        )
-                ))
-        );
+                                                "data", base64Image)),
+                                Map.of("type", "text", "text", prompt)))));
         return invokeModel(requestBody);
     }
 
@@ -89,10 +111,7 @@ public class BedrockAiAdapter implements AiService {
                 "messages", List.of(Map.of(
                         "role", "user",
                         "content", List.of(
-                                Map.of("type", "text", "text", prompt)
-                        )
-                ))
-        );
+                                Map.of("type", "text", "text", prompt)))));
         return invokeModel(requestBody);
     }
 
