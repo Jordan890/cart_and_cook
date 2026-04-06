@@ -103,8 +103,8 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       HUGGINGFACE_API_KEY: ${HUGGINGFACE_API_KEY:-}
 
-      # Ollama — if running on the Docker host, use host.docker.internal
-      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://host.docker.internal:11434}
+      # Ollama
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
     volumes:
       - images:/app/images
     healthcheck:
@@ -123,6 +123,21 @@ services:
       AUTH_AUTHORITY: "https://${DOMAIN}/auth/realms/cart_and_cook"
       AUTH_CLIENT_ID: ${AUTH_CLIENT_ID:-cart-and-cook-ui}
       AUTH_RUNTIME: oidc
+
+  # ── Ollama (local AI) ───────────────────────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    restart: unless-stopped
+    volumes:
+      - ollama_data:/root/.ollama
+    # Uncomment for NVIDIA GPU support:
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: all
+    #           capabilities: [gpu]
 
   # ── Caddy (Tailscale TLS reverse proxy) ─────────────────────────────
   caddy:
@@ -146,6 +161,7 @@ services:
 volumes:
   pgdata:
   images:
+  ollama_data:
   caddy_data:
   caddy_config:
   ts_state:
